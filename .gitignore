@@ -1,0 +1,36 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Local datasets (keep experiment CSV records outside these directories)
+data/
+datasets/
+
+# Model weights and checkpoints
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+
+# Large generated artifacts and profiler / TensorBoard output
+outputs/
+artifacts/
+profiler_traces/
+*.trace.json
+events.out.tfevents.*
+
+# Local secrets and OS metadata
+.env
+.env.local
+.DS_Store
+Thumbs.db
+
+# Do not globally ignore CSV, images, SVG, logs, or configuration files.
