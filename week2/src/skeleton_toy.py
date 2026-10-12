@@ -293,3 +293,123 @@ def dependency_test(model, X_eval):
         "visible frame max grad:",
         visible_grad.max().item()
     )
+
+import matplotlib.pyplot as plt
+
+
+def attention_heatmap(model, X_eval):
+    model.eval()
+
+    SAMPLE = 0
+    HEAD = 0
+    JOINT = 0
+
+    CENTER = X_eval.shape[1] // 2
+
+    joint_names = [
+        "root",
+        "left_hand",
+        "right_hand",
+        "left_foot",
+        "right_foot"
+    ]
+
+    with torch.no_grad():
+        _, As, At = model(X_eval[SAMPLE:SAMPLE+1])
+
+    print("As:", As.shape)
+    print("At:", At.shape)
+
+    # =========================================
+    # 1. Spatial Attention
+    # As: [B, T, H, J, J]
+    # =========================================
+
+    spatial = As[
+        0, CENTER, HEAD
+    ].detach().cpu()
+
+    plt.figure(figsize=(6, 5))
+
+    plt.imshow(spatial)
+
+    plt.colorbar(label="Attention Weight")
+
+    plt.xticks(
+        range(len(joint_names)),
+        joint_names,
+        rotation=45,
+        ha="right"
+    )
+
+    plt.yticks(
+        range(len(joint_names)),
+        joint_names
+    )
+
+    plt.xlabel("Key Joint")
+    plt.ylabel("Query Joint")
+
+    plt.title(
+        f"Spatial Attention "
+        f"(frame={CENTER}, head={HEAD})"
+    )
+
+    plt.tight_layout()
+    plt.savefig(
+        "spatial_attention.png",
+        dpi=200
+    )
+
+    plt.show()
+
+
+    # =========================================
+    # 2. Temporal Attention
+    # At: [B, J, H, T, T]
+    # =========================================
+
+    temporal = At[
+        0, JOINT, HEAD
+    ].detach().cpu()
+
+    T = temporal.shape[0]
+
+    plt.figure(figsize=(6, 5))
+
+    plt.imshow(temporal)
+
+    plt.colorbar(label="Attention Weight")
+
+    plt.xticks(range(T))
+    plt.yticks(range(T))
+
+    plt.xlabel("Key Frame")
+    plt.ylabel("Query Frame")
+
+    plt.title(
+        f"Temporal Attention "
+        f"(joint={joint_names[JOINT]}, head={HEAD})"
+    )
+
+    plt.tight_layout()
+    plt.savefig(
+        "temporal_attention.png",
+        dpi=200
+    )
+
+    plt.show()
+
+
+    # =========================================
+    # 额外打印 center query 的 temporal attention
+    # =========================================
+
+    center_attention = temporal[CENTER]
+
+    print("\nCenter-frame query attention:")
+    for t, value in enumerate(center_attention):
+        print(
+            f"frame {t}: "
+            f"{value.item():.6f}"
+        )

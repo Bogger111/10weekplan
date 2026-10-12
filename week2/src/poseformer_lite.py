@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class MLP(nn.Module):
-    def __init__(self, in_channels = None, hidden_channels = None, out_channels = None, act_layer = nn.GELU, drop = 0.):
+    def __init__(self, in_channels, hidden_channels = None, out_channels = None, act_layer = nn.GELU, drop = 0.):
         super().__init__()
 
         hidden_channels = hidden_channels or in_channels
@@ -22,7 +22,30 @@ class MLP(nn.Module):
         x = self.dropout(x)
 
         return x
+    
+class DropPath(nn.Module):
+    def __init__(self, drop_prob=0.):
+        super().__init__()
+        self.drop_prob = drop_prob
 
+    def forward(self, x):
+        if self.drop_prob == 0. or not self.training:
+            return x
+
+        keep_prob = 1 - self.drop_prob
+
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)
+
+        random_tensor = keep_prob + torch.rand(
+            shape,
+            dtype=x.dtype,
+            device=x.device
+        )
+
+        random_tensor.floor_()
+
+        return x / keep_prob * random_tensor
+    
 class Attention(nn.Module):
     def __init__(self, dim, heads, attn_drop = 0., fc_drop = 0.):
         assert dim % heads == 0, "ValueError in dim or heads"
@@ -57,13 +80,13 @@ class Attention(nn.Module):
         return x
 
 class Block(nn.Module):
-    def __init__(self, dim, heads, norm_layer = nn.LayerNorm, droppath = 0., drop = 0., attn_drop = 0.):
+    def __init__(self, dim, heads, norm_layer = nn.LayerNorm, droppath = 0., drop = 0., attn_drop = 0., mlp_ratio = 2):
         super().__init__()
-        self.mlp = MLP(dim, dim*2, dim, drop=drop)
-        self.mha = Attention(dim, heads, attn_drop)
+        self.mlp = MLP(dim, dim*mlp_ratio, dim, drop=drop)
+        self.mha = Attention(dim, heads, attn_drop, drop)
         self.norm1 = norm_layer(dim)
         self.norm2 = norm_layer(dim)
-        self.droppath = nn.Identity()
+        self.droppath = DropPath(droppath)
 
     def forward(self, x):
         x = x + self.droppath(self.mha(self.norm1(x)))
@@ -72,9 +95,11 @@ class Block(nn.Module):
         return x
 
 class PoseFormer(nn.Module):
-    def __init__(self, T, J, C, dim, depth, heads, norm_layer = nn.LayerNorm, droppath = 0., drop = 0., attn_drop = 0., depth_ratio = 0.2):
+    def __init__(self, T, J, C, dim, depth, heads, norm_layer = nn.LayerNorm, droppath = 0., drop = 0., attn_drop = 0., pos_drop = 0.2, mlp_ratio = 2):
         super().__init__()
 
+        dpr = [x.item() for x in torch.linspace(0, droppath, depth)]
+        
         self.dim = dim
 
         self.Embedding = nn.Linear(C, dim)
@@ -82,12 +107,14 @@ class PoseFormer(nn.Module):
         self.SpatialPE = nn.Parameter(torch.zeros(1, J, dim))
         self.TemporalPE = nn.Parameter(torch.zeros(1, T, J*dim))
 
+        self.posdrop = nn.Dropout(pos_drop)
+
         self.SpatialFormer = nn.ModuleList([
-            Block(dim, heads, norm_layer, droppath, drop, attn_drop)
+            Block(dim, heads, norm_layer, dpr[i], drop, attn_drop, mlp_ratio)
             for i in range(depth)
             ])
         self.TemporalFormer = nn.ModuleList([
-            Block(J*dim, heads, norm_layer, droppath, drop, attn_drop)
+            Block(J*dim, heads, norm_layer, dpr[i], drop, attn_drop, mlp_ratio)
             for i in range(depth)
         ])
 
@@ -103,6 +130,7 @@ class PoseFormer(nn.Module):
 
     def Spatial_forward(self, x):
         x = self.Embedding(x) + self.SpatialPE
+        x = self.posdrop(x)
         for model in self.SpatialFormer:
             x = model(x)
         x = self.Spatialnorm(x)
@@ -111,6 +139,7 @@ class PoseFormer(nn.Module):
 
     def Temporal_forward(self, x):
         x = x + self.TemporalPE
+        x = self.posdrop(x) 
         for model in self.TemporalFormer:
             x = model(x)
         x = self.Temporalnorm(x)
@@ -137,16 +166,44 @@ class PoseFormer(nn.Module):
 
 def test():
     model = PoseFormer(
-    T=9,
-    J=17,
-    C=2,
-    dim=32,
-    depth=4,
-    heads=8
-)
+        T=9,
+        J=17,
+        C=2,
+        dim=32,
+        depth=4,
+        heads=8
+    )
 
-    x = torch.randn(2, 9, 17, 2)
+    x = torch.randn(
+        2, 9, 17, 2,
+        requires_grad=True
+    )
 
     y = model(x)
 
-    print(y.shape)
+    print("output:", y.shape)
+
+    loss = y.pow(2).mean()
+    loss.backward()
+
+    print(
+        "embedding grad:",
+        model.Embedding.weight.grad.norm().item()
+    )
+
+    print(
+        "spatial grad:",
+        model.SpatialFormer[0]
+             .mha.wqkv.weight.grad.norm().item()
+    )
+
+    print(
+        "temporal grad:",
+        model.TemporalFormer[0]
+             .mha.wqkv.weight.grad.norm().item()
+    )
+
+    print(
+        "head grad:",
+        model.head[1].weight.grad.norm().item()
+    )

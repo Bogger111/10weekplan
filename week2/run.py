@@ -1,5 +1,9 @@
-from src.skeleton_toy import formal,dependency_test
-from experiments.poseformer_lite import test
+from src.skeleton_toy import formal,dependency_test,attention_heatmap
+from src.poseformer_lite import test
 
-if __name__ == "__main__":
-    test()
+model, X_eval, Y_eval = formal()
+
+attention_heatmap(
+    model,
+    X_eval
+)
