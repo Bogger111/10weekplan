@@ -1,4 +1,13 @@
 import torch
+import torch.nn as nn
+
+from torch.utils.data import DataLoader, TensorDataset
+
+from src.transformer import(
+    sinusoidal_pe,
+    SpatialBlock,
+    TemporalBlock
+)
 
 def generate_skeleton_data(
         num_sequences,
@@ -41,7 +50,7 @@ def generate_skeleton_data(
     coords[:, center, :, :] = 0.0
 
     flag = torch.ones(
-        num_sequences, T, J, 1,
+        N, T, J, 1,
         dtype=torch.float32
     )
 
@@ -51,16 +60,236 @@ def generate_skeleton_data(
 
     return X, Y  
 
-X, Y = generate_skeleton_data(64, 42)
+class Skeleton_toy(nn.Module):
+    def __init__(self, T = 9, J = 5, C = 32, H = 4):
+        super().__init__()
+        self.T = T
+        self.J = J
+        self.C = C
+        self.H = H
 
-print(X.shape)
-print(Y.shape)
+        self.Spatial = SpatialBlock(C, H)
+        self.Temporal = TemporalBlock(C, H)
 
-print("masked center:")
-print(X[0, 4, :, :3])
+        Tpe = sinusoidal_pe(T, C).reshape(1, T, 1, C)
+        Jpe = sinusoidal_pe(J, C).reshape(1, 1, J, C)
 
-print("center flag:")
-print(X[0, 4, :, 3])
+        self.register_buffer('Tpe', Tpe)
+        self.register_buffer('Jpe', Jpe)
 
-print("clean target:")
-print(Y[0, 4])
+        self.ffn1 = nn.Linear(4, C)
+        self.ffn2 = nn.Linear(C, 3)
+
+        self.norm = nn.LayerNorm(C)
+
+    def forward(self, x):
+        x = self.ffn1(x)
+
+        x = x + self.Tpe + self.Jpe
+
+        x, As = self.Spatial(x)
+
+        x, At = self.Temporal(x)
+
+        x = self.norm(x)
+
+        x = self.ffn2(x)
+
+        return x, As, At
+
+def test():
+    X, Y = generate_skeleton_data(64, 42)
+
+    N, T, J, D = X.shape
+
+    Net = Skeleton_toy(T, J)
+
+    Y_pred, As, At = Net(X)
+
+    center = T // 2
+
+    loss = torch.nn.functional.mse_loss(Y_pred[:, center], Y[:, center])
+
+
+
+    print("pred:", Y_pred.shape)
+    print("As:", As.shape)
+    print("At:", At.shape)
+    print("loss:", loss.item())
+
+
+    loss.backward()
+
+    print(Net.ffn1.weight.grad is not None)
+
+    print(
+        Net.Spatial.Block.mha.wq.weight.grad is not None
+    )
+
+    print(
+        Net.Temporal.Block.mha.wq.weight.grad is not None
+    )
+
+    print(Net.ffn2.weight.grad is not None)
+
+def train():
+    X, Y = generate_skeleton_data(8, 42)
+    EPOCH = 100
+    LR = 1e-3
+    N, T, J, D = X.shape
+    CENTER = T // 2
+
+    torch.manual_seed(42)
+
+    Net = Skeleton_toy()
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(params=Net.parameters(), lr = LR)
+    sclaer = torch.amp.GradScaler('cuda')
+
+    before = Net.ffn2.weight.detach().clone()
+
+    Net.train()
+    for step in range(EPOCH):
+        optimizer.zero_grad()
+
+        with torch.autocast('cuda'):
+            pred, _, _ = Net(X)
+
+            loss = criterion(pred[:, CENTER], Y[:, CENTER])
+
+        sclaer.scale(loss).backward()
+
+        sclaer.unscale_(optimizer)
+
+        sclaer.step(optimizer)
+
+        sclaer.update()
+
+        if (step + 1) % 20 == 0:
+            print(f"{step + 1}:, loss{loss.item()}")
+
+            print(
+                "spatial grad norm:",
+                Net.Spatial.Block.mha.wq.weight.grad.norm().item()
+            )
+
+            print(
+                "temporal grad norm:",
+                Net.Temporal.Block.mha.wq.weight.grad.norm().item()
+            )
+
+    change = (
+        Net.ffn2.weight.detach() - before
+    ).abs().max()
+
+    print("parameter max change:", change.item())
+
+def formal():
+    X, Y = generate_skeleton_data(64, 42)
+    X_eval, Y_eval = generate_skeleton_data(16, 43)
+    
+    TrainSet = TensorDataset(X, Y)
+    EvalSet = TensorDataset(X_eval, Y_eval)
+
+    TrainLoader = DataLoader(TrainSet, batch_size=8, shuffle=False, pin_memory=True)
+    EvalLoader = DataLoader(EvalSet, batch_size=8, shuffle=False, pin_memory=True)
+
+    LR = 1e-3
+    CENTER = 4
+
+    torch.manual_seed(42)
+    model = Skeleton_toy()
+    criterion = nn.MSELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=LR)
+
+    step = 0
+
+    model.train()
+    while step < 300:
+        for x, y in TrainLoader:
+            optimizer.zero_grad()
+            
+            pred, _, _ = model(x)
+
+            loss = criterion(pred[:, CENTER], y[:, CENTER])
+
+            loss.backward()
+
+            optimizer.step()
+
+            if (step + 1) % 30 == 0:
+                print(f"STEP{step+1}, LOSS{loss.item():6f}")
+
+            step += 1
+
+            if step >= 300:
+                break
+            
+
+    model.eval()
+
+    total_loss = 0.0
+    total_num = 0
+
+    with torch.no_grad():
+        for xb, yb in EvalLoader:
+
+            pred, _, _ = model(xb)
+
+            loss = criterion(
+                pred[:, CENTER],
+                yb[:, CENTER]
+            )
+
+            total_loss += loss.item() * xb.shape[0]
+            total_num += xb.shape[0]
+
+    val_mse = total_loss / total_num
+
+    print("val mse:", val_mse)
+
+    return model, X_eval, Y_eval
+
+def dependency_test(model, X_eval):
+    CENTER = X_eval.shape[1] // 2
+
+    X_test = X_eval[:1].clone().detach()
+    X_test.requires_grad_(True)
+
+    model.eval()
+    model.zero_grad()
+
+    pred, _, _ = model(X_test)
+
+    scalar = pred[0, CENTER, 0, 0]
+
+
+    scalar.backward()
+
+    grad = X_test.grad[0, :, :, :3]
+
+    frame_grad = grad.abs().sum(dim=(1, 2))
+
+    print("\n=== Cross-frame dependency ===")
+
+    for t in range(len(frame_grad)):
+        mark = "  <- center" if t == CENTER else ""
+        print(
+            f"frame {t}: "
+            f"{frame_grad[t].item():.8f}{mark}"
+        )
+
+    visible_grad = torch.cat([
+        frame_grad[:CENTER],
+        frame_grad[CENTER + 1:]
+    ])
+
+    print(
+        "\nvisible frame total grad:",
+        visible_grad.sum().item()
+    )
+
+    print(
+        "visible frame max grad:",
+        visible_grad.max().item()
+    )
