@@ -6,7 +6,7 @@
 
 | 路径 | 用途 / 状态 |
 |---|---|
-| `.gitignore`、`README.md`、`FILE_INVENTORY.md` | 本轮新增的版本管理边界、目录说明与清单 |
+| `.gitignore`、`README.md`、`FILE_INVENTORY.md` | 版本管理边界、目录说明与清单 |
 | `week1/micrograd.py` | 手写标量自动微分和 MLP；包含顶层训练循环 |
 | `week1/sgd_one_step.py` | 标量 SGD 单步练习 |
 | `week1/autograd_gate.py` | PyTorch 自动微分训练练习 |
@@ -25,12 +25,14 @@
 | `week1/week1_work/trainer.py` | 综合作业训练器草稿，尚不能正常运行 |
 | `week1/week1_work/main.py`、`week1/week1_work/checkpoints.py`、`week1/week1_work/debug.py`、`week1/week1_work/test.py` | 空文件，尚待本人实现 |
 
+`requirements.txt` 记录统一环境的安装包版本；PyTorch 的实际 CUDA 构建版本见 README。
+
 ## 保留原位，排除出 Git
 
 | 路径 | 已知用途 / 证据 |
 |---|---|
-| `.venv/` | 根目录 Python 3.12.3 虚拟环境，未安装 PyTorch |
-| `week1/.venv/` | Week1 专用 Python / PyTorch 环境 |
+| `.venv/` | 统一 Python 3.12.3 / PyTorch 环境，包版本与 Week1 相同 |
+| `week1/.venv/` | 已删除；所有周次统一使用根目录 `.venv/` |
 | `week1/__pycache__/` | Python 字节码缓存 |
 | `week1/week1_work/checkpoints/` | 空运行产物目录；Git 不追踪空目录 |
 | `week1/step50.pt` | 含模型、Adam 状态、global_step=50、配置和 CPU RNG |

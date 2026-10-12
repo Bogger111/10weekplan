@@ -11,12 +11,11 @@
 ├── README.md                 目录说明与状态
 ├── FILE_INVENTORY.md         现有文件及产物清单
 ├── .gitignore                版本管理边界
-├── .venv/                    根目录旧环境（不纳入 Git）
+├── .venv/                    统一科研环境（不纳入 Git）
 └── week1/
     ├── *.py                  独立练习与参考实验脚本
     ├── computation_graph.svg 已有计算图产物
     ├── *.pt                  已有权重和 checkpoint（不纳入 Git）
-    ├── .venv/                Week1 环境（不纳入 Git）
     └── week1_work/           综合手写作业，尚未完成
         └── checkpoints/     当前为空，运行产物目录（不纳入 Git）
 ```
@@ -25,9 +24,17 @@
 
 ## 环境与入口
 
-Week1 解释器：`/home/bogger/10weekplan/week1/.venv/bin/python`。
+统一解释器：`/home/bogger/10weekplan/.venv/bin/python`。所有周次优先使用此环境。
 
-此前只读环境检查：Python 3.12.3，PyTorch `2.14.0+cu130`，CUDA 13.0，CUDA available=True，GPU 为 RTX 5070 Laptop GPU。根目录 `.venv` 未安装 PyTorch。此记录不是依赖锁定或训练成功证明。
+```bash
+cd /home/bogger/10weekplan
+source .venv/bin/activate
+python -c "import sys; print(sys.executable)"
+```
+
+用 VS Code 的 WSL 窗口打开整个 `/home/bogger/10weekplan/` 文件夹。`.vscode/settings.json` 配置默认解释器与新终端环境，`.vscode/launch.json` 的当前文件调试配置显式使用统一解释器。已有的解释器选择可能优先于默认值；如果仍显示旧环境，执行 `Python: Select Interpreter` 选择 `/home/bogger/10weekplan/.venv/bin/python` 一次，然后重新新建终端。调试以当前文件所在目录为工作目录，兼容 Week1 脚本的相对路径。Week1 原环境已删除，所有周次共用根目录环境。根目录环境从同机 Week1 环境复制，并修正激活脚本和命令入口路径；安装包版本清单见 `requirements.txt`。
+
+此前只读环境检查：Python 3.12.3，PyTorch `2.14.0+cu130`，CUDA 13.0，CUDA available=True，GPU 为 RTX 5070 Laptop GPU。根目录 `.venv` 已配置为与 Week1 相同的包环境。此记录不是依赖锁定或训练成功证明。
 
 独立练习入口包括 `week1/sgd_one_step.py`、`week1/train_toy.py`、`week1/debug.py` 和 `week1/resume_check.py`。使用上述解释器，并以 `week1/` 为工作目录；部分脚本使用相对路径保存或读取 checkpoint。多个脚本会在导入或直接执行时训练，请先阅读源码。
 
