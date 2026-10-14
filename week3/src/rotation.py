@@ -30,72 +30,71 @@ def skew(omega):
     return hat
 
 def axis_angle_to_matrix(omega):
-    omega = torch.as_tensor(omega, dtype=torch.float32)
-    w1, w2, w3 = omega.unbind(-1)
-    theta = torch.linalg.norm(omega, dim=-1)
-    hat = skew(omega)
+    omega = torch.as_tensor(
+        omega,
+        dtype=torch.float32
+    )
 
-    identity = torch.zeros_like(hat, dtype=hat.dtype, device=hat.device)
-    identity[..., 0, 0] = 1
-    identity[..., 1, 1] = 1
-    identity[..., 2, 2] = 1
+    assert omega.shape[-1] == 3
 
-    if theta == 0:
-        matrix = identity
-    
-    else: matrix = identity + math.sin(theta) / theta * hat + (1 - math.cos(theta)) / theta ** 2 * (hat @ hat)
+    theta = torch.linalg.norm(
+        omega,
+        dim=-1
+    )
 
-    return matrix
+    K = skew(omega)
+
+    I = torch.eye(
+        3,
+        dtype=omega.dtype,
+        device=omega.device
+    ).expand(
+        *omega.shape[:-1],
+        3, 3
+    )
+
+    A = torch.sinc(theta / torch.pi)
+
+    B = 0.5 * torch.sinc(
+        theta / (2 * torch.pi)
+    ) ** 2
+
+    R = (
+        I
+        + A[..., None, None] * K
+        + B[..., None, None] * (K @ K)
+    )
+
+    return R
 
 def apply_rotation(R, points):
 
     return torch.matmul(R, points.transpose(-1, -2)).transpose(-1, -2)
 
-def check_so3(R):
-    identity = torch.zeros_like(R, dtype=R.dtype, device=R.device)
-    identity[..., 0, 0] = 1
-    identity[..., 1, 1] = 1
-    identity[..., 2, 2] = 1
+def check_so3(R, atol=1e-5):
+    identity = torch.eye(
+        3,
+        dtype=R.dtype,
+        device=R.device
+    ).expand(*R.shape[:-2], 3, 3)
+
+    RtR = R @ R.transpose(-1, -2)
+
+    finite = torch.isfinite(R).all()
+
+    orth_error = (RtR - identity).abs().max()
 
     det = torch.linalg.det(R)
-    
-    finite = torch.isfinite(R).all() 
-    o = torch.allclose(R @ R.transpose(-1, -2), identity)
-    d = torch.allclose(det, torch.ones_like(det))
+    det_error = (det - 1).abs().max()
 
-    print('R:', R)
-    print(f"isfinite:{finite}")
-    print(f"orthogonality:{o}")
-    print(f"determinant:{d}")
+    orthogonal = orth_error < atol
+    proper = det_error < atol
 
-zeros = torch.zeros(2,3,3)
-
-identity = zeros.clone()
-identity[..., 0, 0] = 1
-identity[..., 1, 1] = 1
-identity[..., 2, 2] = 1
-
-axis_angle = [0.3, -0.2, 0.4]
-x = [1., 0., 0.]
-y = [0., 1., 0.]
-z = [0., 0., 1.]
-
-X = axis_angle_to_matrix(x)
-Y = axis_angle_to_matrix(y)
-Z = axis_angle_to_matrix(z)
-
-TEST = axis_angle_to_matrix(axis_angle)
-
-check_so3(zeros)
-check_so3(identity)
-check_so3(X)
-check_so3(Y)
-check_so3(Z)
-check_so3(TEST)
-    
-
-R = TEST
-RtR = R @ R.transpose(-1, -2)
-
-print(RtR)
-print((RtR - torch.eye(3)).abs().max())
+    return {
+        "finite": finite.item(),
+        "orthogonal": orthogonal.item(),
+        "det": det,
+        "det_is_one": proper.item(),
+        "orth_error": orth_error.item(),
+        "det_error": det_error.item(),
+    }
