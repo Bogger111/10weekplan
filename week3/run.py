@@ -1,3 +1,11 @@
-from experiments.frame_rotation_check import run
+from experiments.sanity_check import run_all
+from experiments.fk_playground import run_fk_playground
 
-run()
+
+def main():
+    run_all()
+    run_fk_playground()
+
+
+if __name__ == "__main__":
+    main()

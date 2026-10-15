@@ -2,11 +2,8 @@ import torch
 import math
 
 def skew(omega):
-    omega = torch.as_tensor(
-        omega,
-        dtype=torch.float32
-    )
-
+    if not torch.is_tensor(omega):
+        omega = torch.tensor(omega, dtype=torch.get_default_dtype())
     assert omega.shape[-1] == 3
 
     w1, w2, w3 = omega.unbind(-1)
@@ -30,10 +27,8 @@ def skew(omega):
     return hat
 
 def axis_angle_to_matrix(omega):
-    omega = torch.as_tensor(
-        omega,
-        dtype=torch.float32
-    )
+    if not torch.is_tensor(omega):
+        omega = torch.tensor(omega, dtype=torch.get_default_dtype())
 
     assert omega.shape[-1] == 3
 
@@ -98,3 +93,66 @@ def check_so3(R, atol=1e-5):
         "orth_error": orth_error.item(),
         "det_error": det_error.item(),
     }
+
+def matrix_to_rotation_6D(R):
+    
+    return R[..., :2, :].reshape(*R.shape[:-2], 6)
+
+def rotation_6D_to_matrix(rot, eps=1e-8):
+    if rot.shape[-1] != 6:
+        raise ValueError("Incorrect rotation")
+
+
+    a1 = rot[..., :3]
+    a2 = rot[..., 3:]
+
+    norm_1 = torch.linalg.vector_norm(a1, dim=-1)
+
+    b1 = torch.nn.functional.normalize(a1, dim=-1)
+    b2 = a2 - (b1 * a2).sum(-1, keepdim = True) * b1
+
+    norm_2 = torch.linalg.vector_norm(b2, dim=-1)
+
+    valid = (norm_1 > eps) & (norm_2 > eps)
+
+    if not valid.all():
+        raise ValueError('Incorrect Input')
+
+    b2 = torch.nn.functional.normalize(b2, dim=-1)
+    b3 = torch.cross(b1, b2, dim=-1)
+
+    return torch.stack((b1, b2, b3), dim=-2)
+
+def quaternion_to_matrix(q, eps=1e-8):
+    if q.shape[-1] != 4:
+        raise ValueError(f"Expected [..., 4], got {q.shape}")
+
+    norm = torch.linalg.vector_norm(q, dim=-1, keepdim=True)
+
+    if torch.any(norm < eps):
+        raise ValueError("Zero or near-zero quaternion is invalid")
+
+    q = q / norm
+
+    w, x, y, z = q.unbind(dim=-1)
+
+    r00 = 1 - 2 * (y * y + z * z)
+    r01 = 2 * (x * y - w * z)
+    r02 = 2 * (x * z + w * y)
+
+    r10 = 2 * (x * y + w * z)
+    r11 = 1 - 2 * (x * x + z * z)
+    r12 = 2 * (y * z - w * x)
+
+    r20 = 2 * (x * z - w * y)
+    r21 = 2 * (y * z + w * x)
+    r22 = 1 - 2 * (x * x + y * y)
+
+    row0 = torch.stack((r00, r01, r02), dim=-1)
+    row1 = torch.stack((r10, r11, r12), dim=-1)
+    row2 = torch.stack((r20, r21, r22), dim=-1)
+
+    return torch.stack((row0, row1, row2), dim=-2)
+
+
+
