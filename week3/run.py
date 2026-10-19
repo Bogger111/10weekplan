@@ -1,11 +1,9 @@
-from experiments.sanity_check import run_all
-from experiments.fk_playground import run_fk_playground
+from experiments.lbs_check import run_all, exp8_candy_wrapper
 
 
 def main():
     run_all()
-    run_fk_playground()
 
 
 if __name__ == "__main__":
-    main()
+    exp8_candy_wrapper()

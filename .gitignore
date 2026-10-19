@@ -11,6 +11,7 @@ __pycache__/
 # Local datasets (keep experiment CSV records outside these directories)
 data/
 datasets/
+results/
 
 # Model weights and checkpoints
 checkpoints/
