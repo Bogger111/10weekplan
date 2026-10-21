@@ -1,4 +1,4 @@
-from week4.experiments.d3_loss_check import run_all
+from week4.experiments.d4_mpjpe_check import run_all
 
 def main():
     run_all()

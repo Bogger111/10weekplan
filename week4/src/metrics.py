@@ -11,8 +11,17 @@ def mpjpe(pred, gt, mask=None):
 
     return error[mask].mean()
 def root_aligned_mpjpe(pred, gt, root_index=0, mask=None):
-    P = pred - pred[..., root_index:root_index+1, :]
-    G = gt - gt[..., root_index:root_index+1, :]
+    B, J, C = pred.shape
+
+    if mask is not None:
+        if mask.shape != (B, J) or mask.dtype != torch.bool:
+            raise ValueError("Invalid mask shape or dtype")
+
+        if not mask[:, root_index].all():
+            raise ValueError("Root joint is invalid")
+
+    P = pred - pred[:, root_index:root_index+1, :]
+    G = gt - gt[:, root_index:root_index+1, :]
 
     return mpjpe(P, G, mask)
 
