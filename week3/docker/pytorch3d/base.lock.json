@@ -1,0 +1,5 @@
+{
+  "reference": "registry-1.docker.io/pytorch/pytorch:2.7.1-cuda12.8-cudnn9-devel",
+  "digest": "sha256:3d614dfd422b7e43647491cbf07d6acc516c032fc49c594a94afdebd52552fb9",
+  "compressed_bytes": 9356828177
+}

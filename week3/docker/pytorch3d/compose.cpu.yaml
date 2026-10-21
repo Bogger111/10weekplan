@@ -1,0 +1,3 @@
+services:
+  research:
+    gpus: !reset []

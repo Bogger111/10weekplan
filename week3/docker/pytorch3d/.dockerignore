@@ -1,0 +1,8 @@
+**
+!Dockerfile
+!requirements.lock
+!wheelhouse/
+!wheelhouse/**
+!pytorch3d-source.tar.gz
+!source.lock.json
+!verify.py

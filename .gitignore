@@ -12,6 +12,7 @@ __pycache__/
 data/
 datasets/
 results/
+models/
 
 # Model weights and checkpoints
 checkpoints/
@@ -35,3 +36,7 @@ events.out.tfevents.*
 Thumbs.db
 
 # Do not globally ignore CSV, images, SVG, logs, or configuration files.
+# PyTorch3D downloaded dependencies
+/week3/docker/pytorch3d/wheelhouse/
+/week3/docker/pytorch3d/pypi-metadata/
+/week3/docker/pytorch3d/pytorch3d-source.tar.gz

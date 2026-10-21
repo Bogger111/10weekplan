@@ -1,0 +1,14 @@
+{
+  "project": "facebookresearch/pytorch3d",
+  "tag": "v0.7.9",
+  "commit": "33824be3cbc87a7dd1db0f6a9a9de9ac81b2d0ba",
+  "source_url": "https://codeload.github.com/facebookresearch/pytorch3d/tar.gz/33824be3cbc87a7dd1db0f6a9a9de9ac81b2d0ba",
+  "source_sha256": "3c7076b9007e1994234e3461081c5394dbfe75966192fe258e336322869fe77d",
+  "decision": "PyTorch 2.7.1 + CUDA 12.8 supports Blackwell; source build requires local functional validation rather than an official certification claim.",
+  "references": [
+    "https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md",
+    "https://github.com/facebookresearch/pytorch3d/releases/tag/v0.7.9",
+    "https://pytorch.org/blog/pytorch-2-7/",
+    "https://docs.docker.com/desktop/features/gpu/"
+  ]
+}

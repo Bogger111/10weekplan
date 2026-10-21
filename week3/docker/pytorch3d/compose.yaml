@@ -1,0 +1,29 @@
+name: week3-pytorch3d
+
+services:
+  research:
+    image: bogger-pytorch3d:0.7.9-torch2.7.1-cu128-sm120
+    pull_policy: never
+    build:
+      context: .
+      args:
+        MAX_JOBS: "2"
+    user: "${LOCAL_UID:-1000}:${LOCAL_GID:-1000}"
+    working_dir: /workspace/week3
+    init: true
+    gpus: all
+    shm_size: 1gb
+    network_mode: none
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    environment:
+      HOME: /tmp/research-home
+      PYTHONDONTWRITEBYTECODE: "1"
+      MPLBACKEND: Agg
+      MPLCONFIGDIR: /tmp/matplotlib
+      OMP_NUM_THREADS: "2"
+    volumes:
+      - ../..:/workspace/week3
+      - ../../models:/workspace/week3/models:ro
+    command: [bash]

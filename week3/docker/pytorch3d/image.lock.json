@@ -1,0 +1,54 @@
+{
+  "status": "PASS",
+  "verified_at": "2026-10-20T16:59:10+08:00",
+  "image_tag": "bogger-pytorch3d:0.7.9-torch2.7.1-cu128-sm120",
+  "image_id": "sha256:6f02099d0b401fc29055d2ec880ab37bd16bfb66e545905bfb464c364d488812",
+  "repo_digests": [
+    "bogger-pytorch3d@sha256:6f02099d0b401fc29055d2ec880ab37bd16bfb66e545905bfb464c364d488812"
+  ],
+  "size_bytes": 9583487203,
+  "base": {
+    "reference": "registry-1.docker.io/pytorch/pytorch:2.7.1-cuda12.8-cudnn9-devel",
+    "digest": "sha256:3d614dfd422b7e43647491cbf07d6acc516c032fc49c594a94afdebd52552fb9",
+    "compressed_bytes": 9356828177
+  },
+  "source": {
+    "project": "facebookresearch/pytorch3d",
+    "tag": "v0.7.9",
+    "commit": "33824be3cbc87a7dd1db0f6a9a9de9ac81b2d0ba",
+    "source_url": "https://codeload.github.com/facebookresearch/pytorch3d/tar.gz/33824be3cbc87a7dd1db0f6a9a9de9ac81b2d0ba",
+    "source_sha256": "3c7076b9007e1994234e3461081c5394dbfe75966192fe258e336322869fe77d",
+    "decision": "PyTorch 2.7.1 + CUDA 12.8 supports Blackwell; source build requires local functional validation rather than an official certification claim.",
+    "references": [
+      "https://github.com/facebookresearch/pytorch3d/blob/main/INSTALL.md",
+      "https://github.com/facebookresearch/pytorch3d/releases/tag/v0.7.9",
+      "https://pytorch.org/blog/pytorch-2-7/",
+      "https://docs.docker.com/desktop/features/gpu/"
+    ]
+  },
+  "compiled_extension": {
+    "torch": "2.7.1+cu128",
+    "pytorch3d": "0.7.9",
+    "compiled_extension": "/opt/conda/lib/python3.11/site-packages/pytorch3d/_C.cpython-311-x86_64-linux-gnu.so",
+    "extension_sha256": "968102732050137486624d418dc693006088a5112742fff0f685ef0a8089876f",
+    "cuda_architectures": [
+      "sm_120"
+    ],
+    "wheels": [
+      {
+        "filename": "pytorch3d-0.7.9-cp311-cp311-linux_x86_64.whl",
+        "sha256": "5cc6d30d60df0f238873f73f290be06f6875445c0ffe7e0f4b0f8103ecb215fa"
+      }
+    ]
+  },
+  "versions": {
+    "python": "3.11.13",
+    "torch": "2.7.1+cu128",
+    "torch_cuda": "12.8",
+    "pytorch3d": "0.7.9"
+  },
+  "tested_devices": [
+    "cuda",
+    "cpu"
+  ]
+}

@@ -531,3 +531,393 @@ def plot_lbs_candy_wrapper(
     plt.close(fig)
 
     print("Saved:", save_path)
+
+
+# ============================================================
+# SMPL Mesh Visualization
+# ============================================================
+
+def plot_smpl_mesh_cases(
+    vertices,
+    faces,
+    titles,
+    save_path,
+    face_stride=5,
+):
+
+    from pathlib import Path
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+    save_path = Path(save_path)
+    save_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    if hasattr(vertices, "detach"):
+        vertices = vertices.detach().cpu().numpy()
+
+    if hasattr(faces, "detach"):
+        faces = faces.detach().cpu().numpy()
+
+    vertices = np.asarray(vertices)
+    faces = np.asarray(faces, dtype=np.int64)
+
+    N = vertices.shape[0]
+    assert len(titles) == N
+
+    # SMPL commonly uses Y as the vertical direction.
+    # Convert display axes to X, Z, Y for matplotlib.
+    display_vertices = vertices[..., [0, 2, 1]]
+
+    # Use the same sampled faces and camera for all cases.
+    sampled_faces = faces[::face_stride]
+
+    # Shared axis limits for meaningful comparisons.
+    all_points = display_vertices.reshape(-1, 3)
+
+    mins = all_points.min(axis=0)
+    maxs = all_points.max(axis=0)
+
+    center = (mins + maxs) / 2
+    radius = max((maxs - mins).max() / 2 * 1.1, 0.1)
+
+    fig = plt.figure(
+        figsize=(5 * N, 6)
+    )
+
+    for i in range(N):
+
+        ax = fig.add_subplot(
+            1, N, i + 1,
+            projection="3d",
+        )
+
+        V = display_vertices[i]
+
+        triangles = V[sampled_faces]
+
+        mesh = Poly3DCollection(
+            triangles,
+            facecolors="lightsteelblue",
+            edgecolors="none",
+            alpha=1.0,
+        )
+
+        ax.add_collection3d(mesh)
+
+        ax.set_xlim(
+            center[0] - radius,
+            center[0] + radius,
+        )
+
+        ax.set_ylim(
+            center[1] - radius,
+            center[1] + radius,
+        )
+
+        ax.set_zlim(
+            center[2] - radius,
+            center[2] + radius,
+        )
+
+        ax.set_box_aspect((1, 1, 1))
+
+        ax.view_init(
+            elev=15,
+            azim=-80,
+        )
+
+        ax.set_xlabel("X")
+        ax.set_ylabel("Z")
+        ax.set_zlabel("Y")
+
+        ax.set_title(titles[i])
+
+    plt.tight_layout()
+
+    plt.savefig(
+        save_path,
+        dpi=160,
+        bbox_inches="tight",
+    )
+
+    plt.close(fig)
+
+    print("Saved:", save_path)
+
+
+
+def plot_smpl_pose_ablation(
+    vertices_full,
+    vertices_off,
+    joints_full,
+    faces,
+    save_path,
+):
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import Normalize
+    from matplotlib.cm import ScalarMappable
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+    from pathlib import Path
+
+    save_path = Path(save_path)
+    save_path.parent.mkdir(parents=True, exist_ok=True)
+
+    v_on = vertices_full[0].detach().cpu().numpy()
+    v_off = vertices_off[0].detach().cpu().numpy()
+    elbow = joints_full[0, 18].detach().cpu().numpy()
+
+    faces = np.asarray(faces, dtype=np.int64)
+
+    # Original SMPL Y-up -> Matplotlib Z-up.
+    def display(v):
+        return v[..., [0, 2, 1]]
+
+    v_on = display(v_on)
+    v_off = display(v_off)
+    elbow = display(elbow)
+
+    delta = np.linalg.norm(v_on - v_off, axis=-1)
+
+    fig = plt.figure(figsize=(16, 6))
+    axes = [
+        fig.add_subplot(1, 3, i + 1, projection="3d")
+        for i in range(3)
+    ]
+
+    all_points = np.concatenate([v_on, v_off], axis=0)
+    mins = all_points.min(axis=0)
+    maxs = all_points.max(axis=0)
+    center = (mins + maxs) / 2
+    radius = max(np.max(maxs - mins) * 0.55, 0.1)
+
+    def set_axes(ax, c, r):
+        ax.set_xlim(c[0] - r, c[0] + r)
+        ax.set_ylim(c[1] - r, c[1] + r)
+        ax.set_zlim(c[2] - r, c[2] + r)
+        ax.set_box_aspect((1, 1, 1))
+        ax.view_init(elev=15, azim=-80)
+        ax.set_xlabel("X")
+        ax.set_ylabel("Z")
+        ax.set_zlabel("Y (up)")
+
+    # Panel 1 and 2: complete human meshes
+    for ax, vertices, title in zip(
+        axes[:2],
+        [v_off, v_on],
+        ["Pose Correctives OFF", "Full SMPL"],
+    ):
+        triangles = vertices[faces]
+
+        mesh = Poly3DCollection(
+            triangles,
+            facecolors="lightsteelblue",
+            edgecolors="none",
+            alpha=1.0,
+        )
+
+        ax.add_collection3d(mesh)
+        set_axes(ax, center, radius)
+        ax.set_title(title)
+
+    # Panel 3: elbow displacement heatmap
+    zoom_radius = 0.25
+    triangles = v_on[faces]
+    face_centers = triangles.mean(axis=1)
+
+    near_faces = (
+        np.linalg.norm(
+            face_centers - elbow[None, :],
+            axis=1,
+        ) < zoom_radius
+    )
+
+    if not np.any(near_faces):
+        raise ValueError("No mesh faces found near elbow")
+
+    local_faces = faces[near_faces]
+    local_triangles = v_on[local_faces]
+
+    face_delta = delta[local_faces].mean(axis=1)
+
+    norm = Normalize(
+        vmin=0,
+        vmax=max(float(delta.max()), 1e-8),
+    )
+
+    cmap = plt.get_cmap("viridis")
+
+    heatmap_mesh = Poly3DCollection(
+        local_triangles,
+        facecolors=cmap(norm(face_delta)),
+        edgecolors="none",
+        alpha=1.0,
+    )
+
+    axes[2].add_collection3d(heatmap_mesh)
+    set_axes(axes[2], elbow, zoom_radius)
+    axes[2].set_title("Elbow: Vertex Displacement")
+
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+
+    fig.colorbar(
+        sm,
+        ax=axes[2],
+        shrink=0.65,
+        pad=0.10,
+        label="Vertex displacement (SMPL units)",
+    )
+
+    fig.suptitle(
+        "SMPL Pose Blend Shapes Ablation",
+        fontsize=15,
+    )
+
+    fig.savefig(save_path, dpi=170, bbox_inches="tight")
+    plt.close(fig)
+
+    print("Saved:", save_path)
+
+
+
+def plot_smpl_motion(
+    vertices,
+    joints,
+    faces,
+    save_dir,
+    fps=12,
+    face_stride=10,
+):
+    from pathlib import Path
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    from matplotlib.animation import FuncAnimation, PillowWriter
+    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
+    save_dir = Path(save_dir)
+    save_dir.mkdir(parents=True, exist_ok=True)
+
+    # SMPL Y-up -> Matplotlib Z-up
+    V = vertices.detach().cpu().numpy()[..., [0, 2, 1]]
+    J = joints.detach().cpu().numpy()[..., [0, 2, 1]]
+    F = np.asarray(faces, dtype=np.int64)
+
+    T = V.shape[0]
+    sampled_faces = F[::face_stride]
+
+    # Shared camera and bounds for all frames.
+    all_points = V.reshape(-1, 3)
+    mins = all_points.min(axis=0)
+    maxs = all_points.max(axis=0)
+
+    center = (mins + maxs) / 2
+    radius = max(
+        float((maxs - mins).max()) * 0.55,
+        0.1,
+    )
+
+    def setup_axes(ax):
+        ax.set_xlim(center[0] - radius, center[0] + radius)
+        ax.set_ylim(center[1] - radius, center[1] + radius)
+        ax.set_zlim(center[2] - radius, center[2] + radius)
+
+        ax.set_box_aspect((1, 1, 1))
+        ax.view_init(elev=15, azim=-80)
+
+        ax.set_xlabel("X")
+        ax.set_ylabel("Z")
+        ax.set_zlabel("Y (up)")
+
+    # --------------------------------------------------------
+    # 1. SMPL Mesh GIF
+    # --------------------------------------------------------
+    fig = plt.figure(figsize=(6, 7))
+    ax = fig.add_subplot(111, projection="3d")
+
+    mesh = Poly3DCollection(
+        V[0][sampled_faces],
+        facecolors="lightsteelblue",
+        edgecolors="none",
+        alpha=1.0,
+    )
+
+    ax.add_collection3d(mesh)
+    setup_axes(ax)
+
+    def update(frame):
+        mesh.set_verts(V[frame][sampled_faces])
+        ax.set_title(f"SMPL Motion | Frame {frame + 1}/{T}")
+        return (mesh,)
+
+    animation = FuncAnimation(
+        fig,
+        update,
+        frames=T,
+        interval=1000 / fps,
+        blit=False,
+    )
+
+    gif_path = save_dir / "elbow_motion.gif"
+
+    animation.save(
+        str(gif_path),
+        writer=PillowWriter(fps=fps),
+        dpi=100,
+    )
+
+    plt.close(fig)
+    print("Saved:", gif_path)
+
+    # --------------------------------------------------------
+    # 2. Wrist trajectory (3D)
+    # --------------------------------------------------------
+    wrist = J[:, 20, :]
+
+    fig = plt.figure(figsize=(7, 6))
+    ax = fig.add_subplot(111, projection="3d")
+
+    ax.plot(
+        wrist[:, 0],
+        wrist[:, 1],
+        wrist[:, 2],
+        linewidth=2,
+        label="Wrist trajectory",
+    )
+
+    ax.scatter(
+        *wrist[0],
+        s=60,
+        label="Start / End",
+    )
+
+    ax.scatter(
+        *wrist[T // 2],
+        s=60,
+        label="Maximum bend",
+    )
+
+    ax.set_xlabel("X")
+    ax.set_ylabel("Z")
+    ax.set_zlabel("Y (up)")
+    ax.set_title("SMPL Left Wrist Trajectory")
+    ax.legend()
+
+    trajectory_path = save_dir / "wrist_trajectory.png"
+
+    fig.savefig(
+        trajectory_path,
+        dpi=160,
+        bbox_inches="tight",
+    )
+
+    plt.close(fig)
+    print("Saved:", trajectory_path)

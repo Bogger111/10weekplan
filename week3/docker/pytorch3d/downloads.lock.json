@@ -1,0 +1,162 @@
+[
+  {
+    "name": "numpy",
+    "version": "1.26.4",
+    "filename": "numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/3a/d0/edc009c27b406c4f9cbc79274d6e46d634d139075492ad055e3d68445925/numpy-1.26.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "sha256": "666dbfb6ec68962c033a450943ded891bed2d54e6755e35e5835d63f4f6931d5",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "scipy",
+    "version": "1.13.1",
+    "filename": "scipy-1.13.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/36/07/035d22ff9795129c5a847c64cb43c1fa9188826b59344fee28a3ab02e283/scipy-1.13.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "sha256": "a78b4b3345f1b6f68a763c6e25c0c9a23a9fd0f39f5f3d200efe8feda560a5fa",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "matplotlib",
+    "version": "3.9.4",
+    "filename": "matplotlib-3.9.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/ab/33/1648da77b74741c89f5ea95cbf42a291b4b364f2660b316318811404ed97/matplotlib-3.9.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "sha256": "aca90ed222ac3565d2752b83dbb27627480d27662671e4d39da72e97f657a423",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "pillow",
+    "version": "11.2.1",
+    "filename": "pillow-11.2.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/1f/e3/0a58b5d838687f40891fff9cbaf8669f90c96b64dc8f91f87894413856c6/pillow-11.2.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "sha256": "b93a07e76d13bff9444f1a029e0af2964e654bfc2e2c2d46bfd080df5ad5f3d8",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "contourpy",
+    "version": "1.3.2",
+    "filename": "contourpy-1.3.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/c2/f3/20c5d1ef4f4748e52d60771b8560cf00b69d5c6368b5c2e9311bcfa2a08b/contourpy-1.3.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "sha256": "3859783aefa2b8355697f16642695a5b9792e7a46ab86da1118a4a23a51a33d7",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "cycler",
+    "version": "0.12.1",
+    "filename": "cycler-0.12.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl",
+    "sha256": "85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "fonttools",
+    "version": "4.58.2",
+    "filename": "fonttools-4.58.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/60/d1/301aec4f02995958b7af6728f838b2e5cc9296bec7eae350722dec31f685/fonttools-4.58.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "sha256": "12fbc6e0bf0c75ce475ef170f2c065be6abc9e06ad19a13b56b02ec2acf02427",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "kiwisolver",
+    "version": "1.4.8",
+    "filename": "kiwisolver-1.4.8-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/3a/97/5edbed69a9d0caa2e4aa616ae7df8127e10f6586940aa683a496c2c280b9/kiwisolver-1.4.8-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+    "sha256": "3a96c0e790ee875d65e340ab383700e2b4891677b7fcd30a699146f9384a2bb0",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "packaging",
+    "version": "25.0",
+    "filename": "packaging-25.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/20/12/38679034af332785aac8774540895e234f4d07f7545804097de4b666afd8/packaging-25.0-py3-none-any.whl",
+    "sha256": "29572ef2b1f17581046b3a2227d5c611fb25ec70ca1ba8554b24b0e69331a484",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "pyparsing",
+    "version": "3.2.3",
+    "filename": "pyparsing-3.2.3-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/05/e7/df2285f3d08fee213f2d041540fa4fc9ca6c2d44cf36d3a035bf2a8d2bcc/pyparsing-3.2.3-py3-none-any.whl",
+    "sha256": "a749938e02d6fd0b59b356ca504a24982314bb090c383e3cf201c95ef7e2bfcf",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "python-dateutil",
+    "version": "2.9.0.post0",
+    "filename": "python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl",
+    "sha256": "a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "six",
+    "version": "1.17.0",
+    "filename": "six-1.17.0-py2.py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl",
+    "sha256": "4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "iopath",
+    "version": "0.1.10",
+    "filename": "iopath-0.1.10.tar.gz",
+    "url": "https://files.pythonhosted.org/packages/72/73/b3d451dfc523756cf177d3ebb0af76dc7751b341c60e2a21871be400ae29/iopath-0.1.10.tar.gz",
+    "sha256": "3311c16a4d9137223e20f141655759933e1eda24f8bff166af834af3c645ef01",
+    "folder": "sdists"
+  },
+  {
+    "name": "portalocker",
+    "version": "3.2.0",
+    "filename": "portalocker-3.2.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/4b/a6/38c8e2f318bf67d338f4d629e93b0b4b9af331f455f0390ea8ce4a099b26/portalocker-3.2.0-py3-none-any.whl",
+    "sha256": "3cdc5f565312224bc570c49337bd21428bba0ef363bbcf58b9ef4a9f11779968",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "tqdm",
+    "version": "4.67.1",
+    "filename": "tqdm-4.67.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl",
+    "sha256": "26445eca388f82e72884e0d580d5464cd801a3ea01e63e5601bdff9ba6a48de2",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "smplx",
+    "version": "0.1.28",
+    "filename": "smplx-0.1.28-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/c9/33/bd37416aec828e7465652d9e2525fe52de0a29a581f1519cc51a74485091/smplx-0.1.28-py3-none-any.whl",
+    "sha256": "e8ff3d278a015c097dc86d44a38475da4ac170042943c84c08eee433629406a7",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "imageio",
+    "version": "2.37.0",
+    "filename": "imageio-2.37.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/cb/bd/b394387b598ed84d8d0fa90611a90bee0adc2021820ad5729f7ced74a8e2/imageio-2.37.0-py3-none-any.whl",
+    "sha256": "11efa15b87bc7871b61590326b2d635439acc321cf7f8ce996f812543ce10eed",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "ninja",
+    "version": "1.11.1.4",
+    "filename": "ninja-1.11.1.4-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.whl",
+    "url": "https://files.pythonhosted.org/packages/eb/7a/455d2877fe6cf99886849c7f9755d897df32eaf3a0fba47b56e615f880f7/ninja-1.11.1.4-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.whl",
+    "sha256": "096487995473320de7f65d622c3f1d16c3ad174797602218ca8c967f51ec38a0",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "setuptools",
+    "version": "80.9.0",
+    "filename": "setuptools-80.9.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl",
+    "sha256": "062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922",
+    "folder": "wheelhouse"
+  },
+  {
+    "name": "wheel",
+    "version": "0.45.1",
+    "filename": "wheel-0.45.1-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/0b/2c/87f3254fd8ffd29e4c02732eee68a83a1d3c346ae39bc6822dcbcb697f2b/wheel-0.45.1-py3-none-any.whl",
+    "sha256": "708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248",
+    "folder": "wheelhouse"
+  }
+]
