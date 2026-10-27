@@ -11,8 +11,16 @@
     "python-envs.defaultPackageManager": "ms-python.python:conda",
 
     "python.analysis.extraPaths": [
-    "/home/bogger/research-repos/4D-Humans"
+    "/home/bogger/research-repos/4D-Humans",
+    "/home/bogger/research-repos/multi-hmr2"
     ],
     "python.analysis.autoSearchPaths": true,
-    "python.analysis.indexing": true
+    "python.analysis.indexing": true,
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:conda",
+            "packageManager": "ms-python.python:conda"
+        }
+    ]
 }
