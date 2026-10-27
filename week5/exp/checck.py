@@ -1,7 +1,6 @@
 import numpy as np
 import torch
-import pathlib
-
+from pathlib import Path
 # PATH = pathlib.Path('/home/bogger/10weekplan/week5/results/d1_baseline_20261026_170644/capture_000.npz')
 
 # with np.load(PATH) as data:
@@ -98,13 +97,23 @@ def compute_accel_error(pred, gt, fps=30, frame_ids = None, valid_mask = None):
 
     return accel_error
 
-gt = torch.zeros(6, 1, 3)
-pred = gt.clone()
+def box_check():
+    base = Path('/home/bogger/10weekplan/week5/results')
+    A = Path(base / 'd1_baseline_20261026_170644/capture_000.npz')
+    B = Path(base / 'd1_fixed_bbox.npz')
+    C = Path(base / 'd1_occlusion_20261026_172633/capture_000.npz')
+    D =Path(base / 'd1_original_fixed_bbox.npz')
+    npzs = {'a':A, 'b':B, 'c':C, 'd':D}
+    vertices = {}
+    for name, path in npzs.items():
+        with np.load(path) as data:
+            vertices[name] = torch.from_numpy(data['pred_vertices'])
 
-pred[3:, 0, 0] = 1.0
+    def loss(a, b):
+        return torch.linalg.vector_norm(a-b, dim=-1).mean()
 
-frame_ids = torch.tensor([0, 1, 2, 5, 6, 7])
-
-print(compute_accel_error(
-    pred, gt, fps=1, frame_ids=frame_ids
-))
+    print('a,b',loss(vertices['a'], vertices['b']))
+    print('b,c',loss(vertices['b'], vertices['c']))
+    print('c,a',loss(vertices['c'], vertices['a']))
+    print(loss(vertices['a'], vertices['d']))
+box_check()
