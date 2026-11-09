@@ -116,3 +116,161 @@ else:
 
     print("\nFirst 5 official points:")
     print(official_j2d[valid][:5])
+
+
+print("\n===== Precision Check =====")
+
+print("K dtype:", K.dtype)
+print("J3D dtype:", j3d.dtype)
+print("J2D dtype:", j2d.dtype)
+
+# 模拟将手动投影量化到官方输出精度
+quantized = manual_j2d.to(j2d.dtype).float()
+
+quant_error = torch.linalg.vector_norm(
+    quantized[valid] - official_j2d[valid],
+    dim=-1
+)
+
+print("After dtype matching:")
+print("Mean residual:", quant_error.mean().item())
+print("Max residual:", quant_error.max().item())
+
+print("\n===== Anny Mesh Placement =====")
+
+persons = pred.persons
+
+# 默认 Full-resolution Anny 的参考顶点
+center = persons.v3d[:, 5054, :].float()
+
+# 最终 Pelvis 位置
+pelvis = persons.transl_pelvis.float()
+
+# 最终 J3D 中的根关节
+root = persons.j3d[:, 0, :].float()
+
+print("Center shape:", center.shape)
+print("Pelvis shape:", pelvis.shape)
+print("Root shape:", root.shape)
+
+assert center.shape == pelvis.shape == root.shape
+
+# 检验 1：Pelvis 是否就是 J3D 的根关节
+root_error = (pelvis - root).abs()
+
+print("Root max error:", root_error.max().item())
+
+# 检验 2：Mesh 参考点与 Pelvis 的距离
+center_pelvis_dist = torch.linalg.vector_norm(
+    center - pelvis,
+    dim=-1
+)
+
+print("Center-Pelvis distances:")
+print(center_pelvis_dist)
+
+print("Mean distance:", center_pelvis_dist.mean().item())
+print("Max distance:", center_pelvis_dist.max().item())
+
+persons = pred.persons
+
+pelvis = persons.transl_pelvis.float()
+conf = persons.conf.flatten().float()
+
+print("\n===== Camera-Space Layout =====")
+
+for i in range(len(pred)):
+    x, y, z = pelvis[i].tolist()
+    print(
+        f"Person {i:02d} | "
+        f"conf={conf[i]:.3f} | "
+        f"X={x:.3f} Y={y:.3f} Z={z:.3f}"
+    )
+
+# 先以第 0、1 个预测做数值示例
+# 后续根据可视化确认它们的身份
+i, j = 0, 1
+
+delta = pelvis[j] - pelvis[i]
+distance = torch.linalg.vector_norm(delta)
+
+print("\n===== Relative Position =====")
+print("Delta XYZ:", delta)
+print("3D distance:", distance.item())
+print("Depth difference:", delta[2].item())
+
+import matplotlib.pyplot as plt
+
+persons = pred.persons
+
+xy = persons.j2d[:, 0, :].float().cpu().numpy()
+xyz = persons.transl_pelvis.float().cpu().numpy()
+conf = persons.conf.flatten().float().cpu().numpy()
+
+fig, ax = plt.subplots(figsize=(10, 7))
+
+ax.scatter(xy[:, 0], xy[:, 1])
+
+for i, ((u, v), p, c) in enumerate(zip(xy, xyz, conf)):
+    ax.annotate(
+        f"{i}: Z={p[2]:.1f}, c={c:.2f}",
+        (u, v),
+        xytext=(5, -6),
+        textcoords="offset points",
+        fontsize=8,
+    )
+
+ax.invert_yaxis()
+ax.set_aspect("equal", adjustable="box")
+ax.set_xlabel("Image u")
+ax.set_ylabel("Image v")
+ax.set_title("Multi-HMR 2: Projected Pelvis Layout")
+
+plt.tight_layout()
+plt.savefig(
+    "/home/bogger/10weekplan/week6/results/pelvis_layout.png",
+    dpi=150
+)
+plt.close()
+
+
+
+from PIL import Image, ImageDraw
+from multihmr2.utils.image import (
+    nonsquare_and_resize_image_without_K
+)
+
+img = Image.open("/home/bogger/research-repos/multi-hmr2/demo_data/sample_image.jpg").convert("RGB")
+
+# 使用与官方推理相同的图像几何预处理
+img = nonsquare_and_resize_image_without_K(
+    img, 768, 16
+)
+
+draw = ImageDraw.Draw(img)
+
+xy = pred.persons.j2d[:, 0, :].float().cpu()
+depth = pred.persons.transl_pelvis[:, 2].float().cpu()
+
+for i in range(len(pred)):
+    u, v = xy[i].tolist()
+
+    color = "red" if depth[i] < 20 else "yellow"
+
+    draw.ellipse(
+        (u - 5, v - 5, u + 5, v + 5),
+        fill=color,
+        outline="black"
+    )
+
+    draw.text(
+        (u + 7, v - 12),
+        str(i),
+        fill=color,
+        stroke_width=1,
+        stroke_fill="black"
+    )
+
+img.save(
+    "/home/bogger/10weekplan/week6/results/pelvis_overlay.png"
+)

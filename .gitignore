@@ -13,6 +13,7 @@ data/
 datasets/
 results/
 models/
+inputs/
 
 # Model weights and checkpoints
 checkpoints/
@@ -21,6 +22,15 @@ checkpoints/
 *.ckpt
 *.safetensors
 *.onnx
+*.png
+*.log
+*.json
+*.csv
+*.mp4
+*.cmd
+*.blend
+*.sh
+*.code
 
 # Large generated artifacts and profiler / TensorBoard output
 outputs/
